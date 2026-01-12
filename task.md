@@ -5,7 +5,7 @@
 - [x] Review plan with user <!-- id: 2 -->
 - [x] Create database schema (schema.sql) and utils (db_utils.py) <!-- id: 3 -->
 - [x] Implement stock population script (populate_stocks.py) <!-- id: 4 -->
-- [/] Implement historical backfill script (backfill_data.py) <!-- id: 5 -->
+- [x] Implement historical backfill script (backfill_data.py) <!-- id: 5 -->
 - [x] Verify data integrity <!-- id: 6 -->
 - [x] Plan Web Interface <!-- id: 7 -->
 - [x] Implement Backend (Flask API) <!-- id: 8 -->

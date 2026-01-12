@@ -52,7 +52,14 @@ python3 populate_stocks.py
 python3 backfill_data.py
 ```
 
-### 2. Run the Web Dashboard
+### 2. Daily Price Updates
+To keep the database current with the latest trading data, run the update script after market hours:
+
+```bash
+python3 update_prices.py
+```
+
+### 3. Run the Web Dashboard
 Start the Flask server to visualize the data:
 
 ```bash
@@ -67,6 +74,7 @@ Open your browser and navigate to: **[http://localhost:5000](http://localhost:50
 *   `stocks.db`: SQLite database file.
 *   `populate_stocks.py`: Script to fetch stock list.
 *   `backfill_data.py`: Script to download historical data.
+*   `update_prices.py`: Script to fetch latest daily prices (upsert).
 *   `db_utils.py`: Database helper functions.
 *   `static/`: CSS and JavaScript files.
 *   `templates/`: HTML templates.

@@ -41,15 +41,29 @@ def get_stock_data(ticker):
     stock_id = result[0]
     
     # Fetch price data
-    # Optional: Filter by date range if query params provided
+    # Filter by date range if query params provided
+    start_date = request.args.get('start')
+    end_date = request.args.get('end')
+    
     query = """
         SELECT date, open, close, high, low, volume 
         FROM daily_prices 
-        WHERE stock_id = ? 
-        ORDER BY date ASC
+        WHERE stock_id = ?
     """
     
-    df = pd.read_sql_query(query, conn, params=(stock_id,))
+    params = [stock_id]
+    
+    if start_date:
+        query += " AND date >= ?"
+        params.append(start_date)
+        
+    if end_date:
+        query += " AND date <= ?"
+        params.append(end_date)
+        
+    query += " ORDER BY date ASC"
+    
+    df = pd.read_sql_query(query, conn, params=params)
     conn.close()
     
     # Convert to list of dicts

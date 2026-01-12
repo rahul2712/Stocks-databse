@@ -68,10 +68,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const applyFilterBtn = document.getElementById('applyFilter');
+
+    // Current selected stock
+    let currentStock = null;
+
     function selectStock(stock) {
+        currentStock = stock; // Store current stock
         stockTitle.textContent = `${stock.name} (${stock.ticker})`;
         stockSector.textContent = stock.sector || 'N/A';
 
+        // Clear date inputs when switching stocks? 
+        // Or keep them? Let's keep them if they are set, but maybe reset if they are blank?
+        // Let's reset for now to show full history by default for new stock
+        // startDateInput.value = '';
+        // endDateInput.value = '';
+        // Actually user might want to compare same period across stocks, so let's keep values if set.
+
+        fetchStockData(stock.ticker);
+    }
+
+    applyFilterBtn.addEventListener('click', () => {
+        if (currentStock) {
+            fetchStockData(currentStock.ticker);
+        }
+    });
+
+    function fetchStockData(ticker) {
         // Show loading
         loading.classList.remove('hidden');
         noData.classList.add('hidden');
@@ -81,12 +106,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         tableBody.innerHTML = '';
 
-        fetch(`/api/data/${stock.ticker}`)
+        let url = `/api/data/${ticker}`;
+
+        const params = new URLSearchParams();
+        if (startDateInput.value) params.append('start', startDateInput.value);
+        if (endDateInput.value) params.append('end', endDateInput.value);
+
+        if (params.toString()) {
+            url += `?${params.toString()}`;
+        }
+
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 loading.classList.add('hidden');
                 if (data.error || data.data.length === 0) {
-                    noData.textContent = "No data available";
+                    noData.textContent = "No data available for selected range";
                     noData.classList.remove('hidden');
                     stockCount.textContent = '0';
                     return;
@@ -276,4 +311,25 @@ document.addEventListener('DOMContentLoaded', () => {
         sqlError.style.borderColor = '';
         sqlError.style.backgroundColor = '';
     }
+    // --- Tab Switching Logic ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const targetTab = item.dataset.tab;
+
+            // Update Nav State
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // Update Tab State
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.id === `${targetTab}-tab`) {
+                    tab.classList.add('active');
+                }
+            });
+        });
+    });
 });

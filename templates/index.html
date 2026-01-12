@@ -15,85 +15,124 @@
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>BSE 500 <span class="accent">Stock Database</span></h1>
-            <p class="subtitle">10 Years of Historical Data</p>
-        </header>
-
-        <div class="dashboard">
-            <div class="search-section">
-                <input type="text" id="stockSearch" placeholder="Search for a stock (e.g., RELIANCE)..."
-                    autocomplete="off">
-                <div id="searchResults" class="search-results hidden"></div>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>BSE 500</h2>
+                <p>Database</p>
             </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </button>
+                <button class="nav-item" data-tab="sql">
+                    <span class="icon">💻</span>
+                    SQL Playground
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>v1.0.0</p>
+            </div>
+        </aside>
 
-            <div class="content-grid">
-                <div class="chart-container glass-panel">
-                    <canvas id="priceChart"></canvas>
-                    <div id="loading" class="loading hidden">Loading data...</div>
-                    <div id="noData" class="no-data hidden">Select a stock to view history</div>
-                </div>
+        <main class="main-content">
+            <div id="dashboard-tab" class="tab-content active">
+                <header>
+                    <h1>BSE 500 <span class="accent">Stock Database</span></h1>
+                    <p class="subtitle">10 Years of Historical Data</p>
+                </header>
 
-                <div class="info-panel glass-panel">
-                    <h2 id="stockTitle">Select a Stock</h2>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="label">Sector</span>
-                            <span class="value" id="stockSector">-</span>
+                <div class="dashboard">
+                    <div class="search-section">
+                        <div class="search-bar-container">
+                            <input type="text" id="stockSearch" placeholder="Search for a stock (e.g., RELIANCE)..."
+                                autocomplete="off">
+                            <div id="searchResults" class="search-results hidden"></div>
                         </div>
-                        <div class="stat-item">
-                            <span class="label">Records</span>
-                            <span class="value" id="stockCount">-</span>
+                        <div class="date-filter-container">
+                            <div class="date-input-group">
+                                <label for="startDate">From</label>
+                                <input type="date" id="startDate">
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">To</label>
+                                <input type="date" id="endDate">
+                            </div>
+                            <button id="applyFilter" class="btn-secondary">Apply Filter</button>
+                        </div>
+                    </div>
+
+                    <div class="content-grid">
+                        <div class="chart-container glass-panel">
+                            <canvas id="priceChart"></canvas>
+                            <div id="loading" class="loading hidden">Loading data...</div>
+                            <div id="noData" class="no-data hidden">Select a stock to view history</div>
+                        </div>
+
+                        <div class="info-panel glass-panel">
+                            <h2 id="stockTitle">Select a Stock</h2>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="label">Sector</span>
+                                    <span class="value" id="stockSector">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="label">Records</span>
+                                    <span class="value" id="stockCount">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-container glass-panel">
+                        <h3>Raw Daily Data</h3>
+                        <div class="table-scroll">
+                            <table id="dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Open</th>
+                                        <th>High</th>
+                                        <th>Low</th>
+                                        <th>Close</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data rows will be inserted here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="table-container glass-panel">
-                <h3>Raw Daily Data</h3>
-                <div class="table-scroll">
-                    <table id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Open</th>
-                                <th>High</th>
-                                <th>Low</th>
-                                <th>Close</th>
-                                <th>Volume</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data rows will be inserted here -->
-                        </tbody>
-                    </table>
+            <div id="sql-tab" class="tab-content">
+                <div class="sql-section glass-panel">
+                    <h2>SQL Playground</h2>
+                    <div class="sql-controls">
+                        <textarea id="sqlQuery" placeholder="SELECT * FROM stocks LIMIT 5;"></textarea>
+                        <div class="button-group">
+                            <button id="runQuery" class="btn-primary">Run Query</button>
+                            <button id="clearQuery" class="btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                    <div id="sqlError" class="error-message hidden"></div>
+                    <div class="table-container sql-results-container hidden" id="sqlResultsContainer">
+                        <h3>Query Results</h3>
+                        <div class="table-scroll">
+                            <table id="sqlTable">
+                                <thead>
+                                    <tr id="sqlHeadRow"></tr>
+                                </thead>
+                                <tbody id="sqlBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="sql-section glass-panel">
-            <h2>SQL Playground</h2>
-            <div class="sql-controls">
-                <textarea id="sqlQuery" placeholder="SELECT * FROM stocks LIMIT 5;"></textarea>
-                <div class="button-group">
-                    <button id="runQuery" class="btn-primary">Run Query</button>
-                    <button id="clearQuery" class="btn-secondary">Clear</button>
-                </div>
-            </div>
-            <div id="sqlError" class="error-message hidden"></div>
-            <div class="table-container sql-results-container hidden" id="sqlResultsContainer">
-                <h3>Query Results</h3>
-                <div class="table-scroll">
-                    <table id="sqlTable">
-                        <thead>
-                            <tr id="sqlHeadRow"></tr>
-                        </thead>
-                        <tbody id="sqlBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

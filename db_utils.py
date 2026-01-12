@@ -76,7 +76,7 @@ def save_daily_data(stock_id: int, df: pd.DataFrame):
     try:
         cursor.executemany(
             """
-            INSERT OR IGNORE INTO daily_prices (stock_id, date, open, close, high, low, volume)
+            INSERT OR REPLACE INTO daily_prices (stock_id, date, open, close, high, low, volume)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             data_to_insert

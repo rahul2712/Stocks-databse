@@ -1,103 +1,134 @@
-# Stock Database Project Implementation Plan
+# Database Plan for BSE 500 Stocks (Last 10 Years)
 
-## 1. Project Overview
+This plan outlines the architecture, schema, and data collection strategy to store daily Open and Close values for BSE 500 stocks.
 
-The **Stock Database** is a web application designed to track and visualize historical stock data for BSE 500 companies. It allows users to:
-- View 10 years of historical price data (Open, High, Low, Close, Volume).
-- Search for stocks by ticker or name.
-- Visualize price trends with interactive charts.
-- Execute raw SQL queries against the database for custom analysis.
+## Goal Description
+Create a reliable database system to store 10 years of historical data for BSE 500 stocks and robustly collect daily updates going forward.
 
-## 2. Architecture
+## User Review Required
+> [!IMPORTANT]
+> **Data Source**: This plan uses the `yfinance` Python library (Yahoo Finance) as a free source for historical data. It is reliable for personal use but unofficial. If you require guaranteed SLA or commercial rights, a paid API (like Zerodha or Twelve Data) would be needed.
 
-The application follows a standard Model-View-Controller (MVC) pattern using:
-- **Backend**: Python with Flask.
-- **Database**: SQLite (`stocks.db`).
-- **Frontend**: HTML/CSS/JavaScript.
+> [!NOTE]
+> **Database Choice**: I have selected **SQLite** for this plan as it is serverless, zero-configuration, and highly performant for a dataset of this size (~1.2 million rows for 500 stocks * 10 years * 250 days). Easy to migrate to PostgreSQL later if needed.
 
-### key Files
-- `app.py`: Main Flask application entry point and route definitions.
-- `db_utils.py`: Database connection handling and helper functions.
-- `schema.sql`: SQL schema definition.
-- `populate_stocks.py`: Script to populate the initial list of stocks.
-- `backfill_data.py`: Script to fetch and backfill historical data.
-- `static/script.js`: Frontend logic for search, charts, and SQL execution.
-- `static/style.css`: Stylesheet implementing the dark "Fintech" theme.
+## Proposed Architecture
 
-## 3. Database Schema
+### 1. Technology Stack
+*   **Language**: Python 3.x
+*   **Database**: SQLite 3 (File-based storage)
+*   **Data Source**: `yfinance` (Yahoo Finance API wrapper)
+*   **Libraries**: `pandas`, `yfinance`, `sqlalchemy` (for ORM)
 
-The database consists of two primary tables:
+### 2. Database Schema
+We will use two normalized tables.
 
-### 3.1. `stocks`
-Stores static information about companies.
-- `id`: Integer Primary Key.
-- `ticker`: Stock ticker symbol (e.g., 'RELIANCE.BO').
-- `name`: Company name.
-- `sector`: Industry sector.
-- `is_active`: Boolean flag for active stocks.
+#### Table: `stocks`
+Stores metadata about the companies.
+*   `id` (Integer, Primary Key): Internal ID
+*   `ticker` (String, Unique): BSE symbol (e.g., "RELIANCE.BO")
+*   `name` (String): Company name
+*   `sector` (String, Optional): Industry sector
+*   `is_active` (Boolean): To track delisted/removed stocks
 
-### 3.2. `daily_prices`
-Stores historical price data.
-- `id`: Integer Primary Key.
-- `stock_id`: Foreign Key referencing `stocks.id`.
-- `date`: Date of the record (YYYY-MM-DD).
-- `open`, `close`, `high`, `low`: Price values (Real).
-- `volume`: Trading volume (Integer).
+#### Table: `daily_prices`
+Stores the time-series data.
+*   `id` (Integer, Primary Key): Auto-increment
+*   `stock_id` (Integer, Foreign Key -> stocks.id)
+*   `date` (Date): Trading date
+*   `open` (Float): Opening price
+*   `close` (Float): Closing price
+*   `high` (Float, Optional): Day High
+*   `low` (Float, Optional): Day Low
+*   `volume` (Integer, Optional): Traded volume
 
-## 4. API Endpoints
+**Indices**:
+*   Composite Index on `daily_prices(stock_id, date)` for fast retrieval and ensuring uniqueness per stock per day.
 
-### `GET /api/stocks`
-Returns a list of all active stocks.
-- **Response**: JSON array of objects `{id, ticker, name, sector}`.
+### 3. Data Collection Strategy
 
-### `GET /api/data/<ticker>`
-Returns historical data for a specific stock.
-- **Response**: JSON object containing:
-    - `ticker`: Ticker symbol.
-    - `count`: Number of records.
-    - `data`: Array of price records.
+#### Phase 1: Stock List Acquisition
+*   Fetch the current list of BSE 500 stocks.
+*   Source: BSE website CSV or a predefined list.
+*   Action: Populate the `stocks` table.
 
-### `POST /api/execute_sql`
-Executes a raw SQL query provided in the request body.
-- **Request**: `{ "query": "SELECT * FROM ..." }`
-- **Response**: JSON object containing:
-    - `columns`: List of column names (for SELECT queries).
-    - `data`: List of rows.
-    - `rows_affected`: Number of rows affected (for modifying queries).
-    - `error`: Error message (if applicable).
+#### Phase 2: Historical Backfill (10 Years)
+*   Iterate through all active stocks in `stocks` table.
+*   Use `yfinance.download(ticker, period="10y")`.
+*   Bulk insert data into `daily_prices`.
+*   Handle rate limits by adding small delays if necessary.
 
-## 5. Frontend Features
+#### Phase 3: Daily Updates
+*   A script `update_prices.py` to be run daily (e.g., via cron) at 4:00 PM IST.
+*   Fetches data for `period="1d"` for all stocks.
+*   Upserts (Update if exists, Insert if new) into the database.
 
-### Dashboard
-- **Search**: Dynamic search bar filtering stocks by name or ticker.
-- **Charts**: Interactive line chart using Chart.js to display Closing Price history.
-- **Stats**: Key statistics display (Sector, Record Count).
-- **Data Table**: Scrollable table showing raw daily data.
+## Proposed Changes
 
-### SQL Playground
-A dedicated section for advanced users to run direct SQL queries securely.
-- **Editor**: Text area for query input.
-- **Result Table**: Dynamic table rendering based on query results.
-- **Error Handling**: Visual feedback for syntax errors or invalid queries.
+### [New Project Structure]
+#### [NEW] [schema.sql](file:///home/rahul/Antigravity/Stocks%20Database/schema.sql)
+SQL script to create tables and indices.
 
-## 6. Setup and Deployment
+#### [NEW] [populate_stocks.py](file:///home/rahul/Antigravity/Stocks%20Database/populate_stocks.py)
+Script to initialize the `stocks` table with BSE 500 tickers.
 
-### Prerequisites
-- Python 3.x
-- `pip` packages: `flask`, `pandas`, `yfinance`? (Need to verify used packages for backfill).
+#### [NEW] [backfill_data.py](file:///home/rahul/Antigravity/Stocks%20Database/backfill_data.py)
+Script to fetch 10 years of history for all stocks.
 
-### Initialization
-1.  Initialize database: `python3 -c "from db_utils import init_db; init_db()"`
-2.  Populate stocks: `python3 populate_stocks.py`
-3.  Backfill data: `python3 backfill_data.py`
+#### [NEW] [db_utils.py](file:///home/rahul/Antigravity/Stocks%20Database/db_utils.py)
+Helper functions for database connections and queries.
 
-### Running the App
-```bash
-python3 app.py
-```
-Access at `http://localhost:5000`.
+## Verification Plan
 
-## 7. Future Enhancements
-- Real-time price updates.
-- Technical indicators (SMA, RSI) on the chart.
-- User authentication for SQL Playground.
+### Automated Tests
+*   **Schema Validation**: Run a script to verify tables exist and have correct columns.
+*   **Data Integrity Check**:
+    *   Fetch count of records for a major stock (e.g., Reliance) -> Should be ~2500 records (10 years).
+    *   Check for duplicates (Grouping by date/stock should have count 1).
+
+### Manual Verification
+*   Run `sqlite3 stocks.db "SELECT * FROM daily_prices LIMIT 5;"` to inspect data manually.
+*   Compare a sample date's Open/Close with a public website (e.g., Google Finance) for accuracy.
+
+# Phase 2: Web Interface Plan
+
+## Goal Description
+Build a modern, responsive web interface to query, visualize, and analyze the collected BSE 500 stock data.
+
+## Proposed Changes
+
+### Tech Stack
+*   **Backend**: Flask (Python) - lightweight and integrates easily with the existing SQLite/Pandas setup.
+*   **Frontend**: HTML5, Vanilla CSS, Vanilla JavaScript (Premium "Fintech" Aesthetic).
+*   **Visualization**: Chart.js (for rendering stock price charts).
+
+### Components
+
+#### [NEW] [app.py](file:///home/rahul/Antigravity/Stocks%20Database/app.py)
+*   **Flask Application**: Serves the static assets and provides API endpoints.
+*   **API Endpoints**:
+    *   `GET /api/stocks`: Returns list of stocks for autocomplete.
+    *   `GET /api/data/<ticker>`: Returns historical data (JSON) for a specific stock within a date range.
+
+#### [NEW] [templates/index.html](file:///home/rahul/Antigravity/Stocks%20Database/templates/index.html)
+*   **Search Bar**: Auto-complete search for stock tickers/names.
+*   **Chart Section**: Interactive line chart showing Open/Close prices.
+*   **Data Table**: Scrollable table showing raw daily values.
+
+#### [NEW] [static/style.css](file:///home/rahul/Antigravity/Stocks%20Database/static/style.css)
+*   **Design**: Dark mode, glassmorphism, vibrant accent colors (Neon Blue/Green), smooth transitions.
+*   **Responsive**: Works on desktop and mobile.
+
+#### [NEW] [static/script.js](file:///home/rahul/Antigravity/Stocks%20Database/static/script.js)
+*   **Logic**:
+    *   Fetches stock list on load.
+    *   Handles search input and selection.
+    *   Fetches data and updates Chart.js instance.
+    *   Renders data table.
+
+## Verification Plan
+*   **Start Server**: Run `python3 app.py`.
+*   **Browser Test**: Open `http://localhost:5000`.
+    *   Search for "RELIANCE.BO".
+    *   Verify chart renders 10 years (or selected range) of data.
+    *   Verify table matches database data.

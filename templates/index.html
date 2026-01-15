@@ -134,23 +134,93 @@
             <div id="sql-tab" class="tab-content">
                 <div class="sql-section glass-panel">
                     <h2>SQL Playground</h2>
-                    <div class="sql-controls">
-                        <textarea id="sqlQuery" placeholder="SELECT * FROM stocks LIMIT 5;"></textarea>
-                        <div class="button-group">
-                            <button id="runQuery" class="btn-primary">Run Query</button>
-                            <button id="clearQuery" class="btn-secondary">Clear</button>
+                    <div class="sql-layout">
+                        <div class="sql-main">
+                            <div class="sql-controls">
+                                <textarea id="sqlQuery" placeholder="SELECT * FROM stocks LIMIT 5;"></textarea>
+                                <div class="button-group">
+                                    <button id="runQuery" class="btn-primary">Run Query</button>
+                                    <button id="clearQuery" class="btn-secondary">Clear</button>
+                                </div>
+                            </div>
+                            <div id="sqlError" class="error-message hidden"></div>
+                            <div class="table-container sql-results-container hidden" id="sqlResultsContainer">
+                                <h3>Query Results</h3>
+                                <div class="table-scroll">
+                                    <table id="sqlTable">
+                                        <thead>
+                                            <tr id="sqlHeadRow"></tr>
+                                        </thead>
+                                        <tbody id="sqlBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div id="sqlError" class="error-message hidden"></div>
-                    <div class="table-container sql-results-container hidden" id="sqlResultsContainer">
-                        <h3>Query Results</h3>
-                        <div class="table-scroll">
-                            <table id="sqlTable">
-                                <thead>
-                                    <tr id="sqlHeadRow"></tr>
-                                </thead>
-                                <tbody id="sqlBody"></tbody>
-                            </table>
+                        <div class="schema-panel">
+                            <h3><span>📋</span> Database Schema</h3>
+                            <div class="table-schema">
+                                <div class="table-name">stocks</div>
+                                <ul class="column-list">
+                                    <li class="column-item"><span>id</span> <span class="column-type">INTEGER
+                                            (PK)</span></li>
+                                    <li class="column-item"><span>ticker</span> <span class="column-type">TEXT
+                                            (UNIQUE)</span>
+                                    </li>
+                                    <li class="column-item"><span>name</span> <span class="column-type">TEXT</span></li>
+                                    <li class="column-item"><span>sector</span> <span class="column-type">TEXT</span>
+                                    </li>
+                                    <li class="column-item"><span>is_active</span> <span
+                                            class="column-type">BOOLEAN</span></li>
+                                </ul>
+                            </div>
+                            <div class="table-schema">
+                                <div class="table-name">daily_prices</div>
+                                <ul class="column-list">
+                                    <li class="column-item"><span>id</span> <span class="column-type">INTEGER
+                                            (PK)</span></li>
+                                    <li class="column-item"><span>stock_id</span> <span class="column-type">INTEGER
+                                            (FK)</span>
+                                    </li>
+                                    <li class="column-item"><span>date</span> <span class="column-type">TEXT</span></li>
+                                    <li class="column-item"><span>open</span> <span class="column-type">REAL</span></li>
+                                    <li class="column-item"><span>high</span> <span class="column-type">REAL</span></li>
+                                    <li class="column-item"><span>low</span> <span class="column-type">REAL</span></li>
+                                    <li class="column-item"><span>close</span> <span class="column-type">REAL</span>
+                                    </li>
+                                    <li class="column-item"><span>volume</span> <span class="column-type">INTEGER</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="table-schema">
+                                <div class="table-name">news</div>
+                                <ul class="column-list">
+                                    <li class="column-item"><span>id</span> <span class="column-type">INTEGER
+                                            (PK)</span></li>
+                                    <li class="column-item"><span>headline</span> <span class="column-type">TEXT</span>
+                                    </li>
+                                    <li class="column-item"><span>summary</span> <span class="column-type">TEXT</span>
+                                    </li>
+                                    <li class="column-item"><span>url</span> <span class="column-type">TEXT
+                                            (UNIQUE)</span></li>
+                                    <li class="column-item"><span>publisher</span> <span class="column-type">TEXT</span>
+                                    </li>
+                                    <li class="column-item"><span>published_at</span> <span
+                                            class="column-type">TEXT</span></li>
+                                    <li class="column-item"><span>sentiment_score</span> <span
+                                            class="column-type">REAL</span></li>
+                                </ul>
+                            </div>
+                            <div class="table-schema">
+                                <div class="table-name">stock_news</div>
+                                <ul class="column-list">
+                                    <li class="column-item"><span>stock_id</span> <span class="column-type">INTEGER
+                                            (FK)</span>
+                                    </li>
+                                    <li class="column-item"><span>news_id</span> <span class="column-type">INTEGER
+                                            (FK)</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

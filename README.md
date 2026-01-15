@@ -5,14 +5,18 @@ A comprehensive database and web dashboard to track 10 years of historical Openi
 ## Features
 
 *   **Robust Data Collection**:
-    *   Automated fetching of BSE 500 stock list (via Nifty 500 proxy).
+    *   Automated fetching of BSE 500 stock list.
     *   Historical backfill of 10 years of OHLCV data using `yfinance`.
-*   **Normalized Database**: efficient SQLite schema with active stock tracking.
+*   **News & Sentiment Analysis**:
+    *   **Live News Feed**: Automatically fetches latest news for tracked stocks.
+    *   **Sentiment Intelligence**: Analyzes news headlines to determine market sentiment (Positive, Negative, Neutral).
+    *   **Impact Correlation**: Visualizes how news influences stock price movements.
+*   **Normalized Database**: Efficient SQLite schema with dedicated tables for stocks, prices, and news.
 *   **Modern Web Dashboard**:
     *   Dark-themed "Fintech" UI with glassmorphism design.
     *   Instant search with autocomplete.
     *   Interactive charts powered by Chart.js.
-    *   Scrollable raw data tables.
+    *   Integrated news view with sentiment color-coding.
 
 ## Tech Stack
 
@@ -20,7 +24,7 @@ A comprehensive database and web dashboard to track 10 years of historical Openi
 *   **Data Processing**: Pandas, yfinance
 *   **Frontend**: HTML5, Vanilla CSS, JavaScript, Chart.js
 
-## Intallation
+## Installation
 
 1.  **Clone the repository**:
     ```bash
@@ -52,11 +56,15 @@ python3 populate_stocks.py
 python3 backfill_data.py
 ```
 
-### 2. Daily Price Updates
-To keep the database current with the latest trading data, run the update script after market hours:
+### 2. Market Updates
+Keep the database current with the latest trading data and news:
 
 ```bash
+# Update stock prices
 python3 update_prices.py
+
+# Fetch latest news and analyze sentiment
+python3 fetch_news.py
 ```
 
 ### 3. Run the Web Dashboard
@@ -72,9 +80,11 @@ Open your browser and navigate to: **[http://localhost:5000](http://localhost:50
 
 *   `app.py`: Flask application server.
 *   `stocks.db`: SQLite database file.
+*   `schema.sql`: Database schema definition.
 *   `populate_stocks.py`: Script to fetch stock list.
 *   `backfill_data.py`: Script to download historical data.
-*   `update_prices.py`: Script to fetch latest daily prices (upsert).
+*   `update_prices.py`: Script to fetch latest daily prices.
+*   `fetch_news.py`: Script to fetch latest news and perform sentiment analysis.
 *   `db_utils.py`: Database helper functions.
 *   `static/`: CSS and JavaScript files.
 *   `templates/`: HTML templates.

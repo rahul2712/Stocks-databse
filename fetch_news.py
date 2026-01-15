@@ -37,13 +37,42 @@ def fetch_and_store_news(limit=None):
                 continue
                 
             for item in news_items:
-                title = item.get('title')
-                summary = item.get('summary', '')
-                url = item.get('link')
-                publisher = item.get('publisher')
-                # yfinance provides providerPublishTime in seconds
-                pub_time = item.get('providerPublishTime')
-                published_at = datetime.datetime.fromtimestamp(pub_time).strftime('%Y-%m-%d %H:%M:%S') if pub_time else None
+                # Handle new yfinance format where data is nested in 'content'
+                content = item.get('content', item)
+                
+                title = content.get('title')
+                if not title:
+                    continue
+                    
+                summary = content.get('summary', content.get('description', ''))
+                
+                # Get URL - look in nested dicts if needed
+                url = content.get('link')
+                if not url and 'canonicalUrl' in content:
+                    url = content['canonicalUrl'].get('url')
+                if not url and 'clickThroughUrl' in content:
+                    url = content['clickThroughUrl'].get('url')
+                
+                # Get Publisher
+                publisher = content.get('publisher')
+                if not publisher and 'provider' in content:
+                    publisher = content['provider'].get('displayName')
+                
+                # Get Published Date
+                published_at = None
+                pub_time = content.get('providerPublishTime') or content.get('pubDate')
+                
+                if pub_time:
+                    try:
+                        if isinstance(pub_time, int):
+                            published_at = datetime.datetime.fromtimestamp(pub_time).strftime('%Y-%m-%d %H:%M:%S')
+                        elif isinstance(pub_time, str):
+                            # Handle ISO format like 2026-01-10T15:39:14Z
+                            # Python 3.11+ handles 'Z' automatically, for older we might need to replace
+                            d = datetime.datetime.fromisoformat(pub_time.replace('Z', '+00:00'))
+                            published_at = d.strftime('%Y-%m-%d %H:%M:%S')
+                    except Exception as date_e:
+                        print(f"Error parsing date {pub_time}: {date_e}")
                 
                 # Analyze sentiment of title and summary
                 sentiment = analyze_sentiment(f"{title} {summary}")

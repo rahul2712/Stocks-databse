@@ -1,8 +1,8 @@
 :root {
-    --bg-dark: #0f111a;
+    --bg-dark: #fdfcff;
     --bg-panel: rgba(255, 255, 255, 0.05);
-    --text-main: #e0e6ed;
-    --text-muted: #94a3b8;
+    --text-main: #020911;
+    --text-muted: #0b62db;
     --accent-primary: #00f2ea;
     --accent-secondary: #ff0055;
     --border-color: rgba(255, 255, 255, 0.1);
@@ -35,7 +35,7 @@ body {
 
 .sidebar {
     width: 250px;
-    background: rgba(15, 17, 26, 0.95);
+    background: rgba(121, 123, 133, 0.884);
     border-right: var(--glass-border);
     display: flex;
     flex-direction: column;
@@ -498,4 +498,149 @@ button {
 
 .sql-results-container {
     margin-top: 1rem;
+}
+
+/* News Section */
+.news-feed {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.news-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.2rem;
+    border-radius: 16px;
+    border: var(--glass-border);
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-publisher {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.sentiment-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.sentiment-positive {
+    background: rgba(0, 242, 234, 0.1);
+    color: #00f2ea;
+    border: 1px solid rgba(0, 242, 234, 0.2);
+}
+
+.sentiment-negative {
+    background: rgba(255, 0, 85, 0.1);
+    color: #ff0055;
+    border: 1px solid rgba(255, 0, 85, 0.2);
+}
+
+.sentiment-neutral {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.news-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.news-title:hover {
+    color: var(--accent-primary);
+}
+
+.news-summary {
+    font-size: 0.9rem;
+    color: #64748b;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+.news-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #475569;
+    margin-top: auto;
+}
+
+.impact-panel {
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+    background: rgba(0, 242, 234, 0.03);
+    border: 1px dashed rgba(0, 242, 234, 0.2);
+    border-radius: 12px;
+}
+
+.impact-header {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.impact-message {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.market-news-section {
+    margin-top: 2rem;
+}
+
+.market-news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.ticker-tag {
+    font-size: 0.7rem;
+    background: rgba(0, 242, 234, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    color: var(--accent-primary);
+    font-weight: 700;
 }

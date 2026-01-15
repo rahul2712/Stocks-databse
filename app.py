@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 import sqlite3
 import pandas as pd
-from db_utils import get_connection
+from db_utils import get_connection, get_stock_news, get_market_news, get_news_price_correlation
 
 app = Flask(__name__)
 
@@ -114,6 +114,36 @@ def execute_sql():
         return jsonify({"error": str(e)}), 400
     finally:
         conn.close()
+
+@app.route('/api/news/<ticker>')
+def get_stock_news_api(ticker):
+    """Returns news and impact analysis for a given ticker."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM stocks WHERE ticker = ?", (ticker,))
+    result = cursor.fetchone()
+    
+    if not result:
+        conn.close()
+        return jsonify({"error": "Stock not found"}), 404
+        
+    stock_id = result[0]
+    conn.close()
+    
+    news = get_stock_news(stock_id)
+    impact = get_news_price_correlation(stock_id)
+    
+    return jsonify({
+        "ticker": ticker,
+        "news": news,
+        "impact": impact
+    })
+
+@app.route('/api/market_news')
+def market_news():
+    """Returns recent news across the market."""
+    news = get_market_news()
+    return jsonify(news)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

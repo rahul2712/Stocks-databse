@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('loading');
     const tableBody = document.querySelector('#dataTable tbody');
 
+    // News Elements
+    const newsSection = document.getElementById('newsSection');
+    const newsGrid = document.getElementById('newsGrid');
+    const impactContainer = document.getElementById('impactContainer');
+    const impactMessage = document.getElementById('impactMessage');
+    const marketNewsGrid = document.getElementById('marketNewsGrid');
+    const refreshMarketNews = document.getElementById('refreshMarketNews');
+
     let stocks = [];
     let chartInstance = null;
 
@@ -18,6 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
             stocks = data;
         })
         .catch(err => console.error('Error fetching stock list:', err));
+
+    // Initial Market News load
+    fetchMarketNews();
+
+    if (refreshMarketNews) {
+        refreshMarketNews.addEventListener('click', fetchMarketNews);
+    }
 
     // Search functionality
     searchInput.addEventListener('input', (e) => {
@@ -80,14 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
         stockTitle.textContent = `${stock.name} (${stock.ticker})`;
         stockSector.textContent = stock.sector || 'N/A';
 
-        // Clear date inputs when switching stocks? 
-        // Or keep them? Let's keep them if they are set, but maybe reset if they are blank?
-        // Let's reset for now to show full history by default for new stock
-        // startDateInput.value = '';
-        // endDateInput.value = '';
-        // Actually user might want to compare same period across stocks, so let's keep values if set.
-
         fetchStockData(stock.ticker);
+        fetchStockNews(stock.ticker);
     }
 
     applyFilterBtn.addEventListener('click', () => {
@@ -229,13 +238,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const sqlHeadRow = document.getElementById('sqlHeadRow');
     const sqlBody = document.getElementById('sqlBody');
 
-    runQueryBtn.addEventListener('click', runSqlQuery);
+    if (runQueryBtn) {
+        runQueryBtn.addEventListener('click', runSqlQuery);
+    }
 
-    clearQueryBtn.addEventListener('click', () => {
-        sqlQuery.value = '';
-        sqlError.classList.add('hidden');
-        sqlResultsContainer.classList.add('hidden');
-    });
+    if (clearQueryBtn) {
+        clearQueryBtn.addEventListener('click', () => {
+            sqlQuery.value = '';
+            sqlError.classList.add('hidden');
+            sqlResultsContainer.classList.add('hidden');
+        });
+    }
 
     function runSqlQuery() {
         const query = sqlQuery.value.trim();
@@ -266,18 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (data.message) {
-                    // Non-SELECT query
                     sqlError.textContent = data.message;
-                    sqlError.style.color = '#00f2ea'; // Success color
+                    sqlError.style.color = '#00f2ea';
                     sqlError.style.borderColor = 'rgba(0, 242, 234, 0.2)';
                     sqlError.style.backgroundColor = 'rgba(0, 242, 234, 0.1)';
                     sqlError.classList.remove('hidden');
-
-                    // Reset error style after a delay or just keep it? 
-                    // Let's reset it if they run another query. 
-                    // But we need to make sure we reset valid styles back to error styles if needed.
-                    // Actually, let's just use a separate success message area or reuse error with style changes?
-                    // Reusing error div for now but styling it differently is fine.
                 } else if (data.columns && data.data) {
                     renderSqlTable(data.columns, data.data);
                 }
@@ -292,10 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSqlTable(columns, rows) {
-        // Render Headers
         sqlHeadRow.innerHTML = columns.map(col => `<th>${col}</th>`).join('');
 
-        // Render Body
         if (rows.length === 0) {
             sqlBody.innerHTML = '<tr><td colspan="' + columns.length + '" style="text-align:center;">No results found</td></tr>';
         } else {
@@ -305,12 +309,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         sqlResultsContainer.classList.remove('hidden');
-
-        // Reset error style just in case it was modified by success message
         sqlError.style.color = '';
         sqlError.style.borderColor = '';
         sqlError.style.backgroundColor = '';
     }
+
+    // --- News Logic ---
+    function fetchStockNews(ticker) {
+        if (!newsSection) return;
+        newsSection.classList.add('hidden');
+        if (impactContainer) impactContainer.classList.add('hidden');
+
+        fetch(`/api/news/${ticker}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.news && data.news.length > 0) {
+                    renderNewsItems(data.news, newsGrid);
+                    newsSection.classList.remove('hidden');
+                }
+
+                if (data.impact && data.impact.message && data.impact.data_points > 0 && impactContainer) {
+                    impactMessage.textContent = data.impact.message;
+                    impactContainer.classList.remove('hidden');
+                }
+            })
+            .catch(err => console.error('Error fetching news:', err));
+    }
+
+    function fetchMarketNews() {
+        if (!marketNewsGrid) return;
+        marketNewsGrid.innerHTML = '<div class="loading">Loading market news...</div>';
+        fetch('/api/market_news')
+            .then(res => res.json())
+            .then(data => {
+                renderNewsItems(data, marketNewsGrid, true);
+            })
+            .catch(err => {
+                console.error('Error fetching market news:', err);
+                marketNewsGrid.innerHTML = '<div class="no-data">Failed to load news</div>';
+            });
+    }
+
+    function renderNewsItems(news, container, showTicker = false) {
+        if (!container) return;
+        container.innerHTML = '';
+        if (news.length === 0) {
+            container.innerHTML = '<div class="no-data">No news available</div>';
+            return;
+        }
+        news.forEach(item => {
+            const sentimentClass = getSentimentClass(item.sentiment);
+            const sentimentLabel = getSentimentLabel(item.sentiment);
+
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            card.innerHTML = `
+                <div class="news-header">
+                    <span class="news-publisher">${item.publisher}</span>
+                    <span class="sentiment-badge ${sentimentClass}">${sentimentLabel}</span>
+                </div>
+                <a href="${item.url}" target="_blank" class="news-title">${item.headline}</a>
+                <p class="news-summary">${item.summary || ''}</p>
+                <div class="news-footer">
+                    <span>${item.published_at || ''}</span>
+                    ${showTicker ? `<span class="ticker-tag">${item.ticker}</span>` : ''}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function getSentimentClass(score) {
+        if (score > 0.1) return 'sentiment-positive';
+        if (score < -0.1) return 'sentiment-negative';
+        return 'sentiment-neutral';
+    }
+
+    function getSentimentLabel(score) {
+        if (score > 0.1) return 'Positive';
+        if (score < -0.1) return 'Negative';
+        return 'Neutral';
+    }
+
     // --- Tab Switching Logic ---
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
